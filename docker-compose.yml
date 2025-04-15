@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chat_platform_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
+    ports:
+      - "${PG_PORT}:5432"
+    volumes:
+      - ./docker/postgres_data:/var/lib/postgresql/data
+    networks:
+      - chat_platform_network
+  
+  redis:
+    image: redis:7-alpine
+    container_name: chat_platform_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    networks:
+      - chat_platform_network
+
+  chat_platform_back:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat_platform_back
+    env_file:
+      - .env # Используется сгенерированный .env
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - chat_platform_network
+    volumes:
+      - ./docker/chroma_data:/app/docker/chroma_data
+
+networks:
+  chat_platform_network:
+    driver: bridge
