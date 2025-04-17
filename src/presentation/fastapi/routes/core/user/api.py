@@ -1,6 +1,9 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session as DBSession
 
+from src.application.schemas.chat import ChatSchema
 from src.application.schemas.user import (
     UserSchema,
     UserLogin,
@@ -13,6 +16,12 @@ from src.infrastructure.postgres.repositories.user import (
     UserNotFoundError,
     IncorrectPasswordError,
     UserAlreadyExistsError,
+)
+from src.infrastructure.postgres.repositories.chat_user import (
+    chat_users_repository
+)
+from src.infrastructure.postgres.repositories.chat import (
+    chats_repository
 )
 from src.presentation.fastapi.middlewares import get_current_user
 
@@ -99,3 +108,29 @@ async def delete_user(
         return {"status": "ok"}
     except UserNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@ROUTER.get(
+    "/chats",
+    response_model=List[ChatSchema],
+    summary="Получить чаты пользователя"
+)
+async def get_user_chats(
+        user: UserSchema = Depends(get_current_user),
+        db_session: DBSession = Depends(get_db_session),
+):
+    user_chats = chat_users_repository.get_user_chats(db_session, user.id)
+    return [ChatSchema.model_validate(chats_repository.get_chat(user_chat.chat_uuid)) for user_chat in user_chats]
+
+
+@ROUTER.get(
+    "/chats/owned",
+    response_model=List[ChatSchema],
+    summary="Получить чаты, принадлежащие пользователю"
+)
+async def get_user_owned_chats(
+        user: UserSchema = Depends(get_current_user),
+        db_session: DBSession = Depends(get_db_session),
+):
+    user_chats = chats_repository.get_user_owned_chats(db_session, user.id)
+    return [ChatSchema.model_validate(user_chat) for user_chat in user_chats]
