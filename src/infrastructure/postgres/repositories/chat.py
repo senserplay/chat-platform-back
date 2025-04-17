@@ -25,8 +25,8 @@ class AccessDeniedError(Exception):
 
 
 class ChatsRepository:
-    def create_chat(self, session: Session, chat_data: ChatCreate) -> ChatSchema:
-        new_chat = Chat(**chat_data.model_dump())
+    def create_chat(self, session: Session, chat_data: ChatCreate, owner_id: int) -> ChatSchema:
+        new_chat = Chat(**chat_data.model_dump(), owner_id=owner_id)
         session.add(new_chat)
         session.commit()
         session.refresh(new_chat)
@@ -54,7 +54,10 @@ class ChatsRepository:
             raise ChatNotFoundError
         if chat.owner_id != user_id:
             raise AccessDeniedError
-        chat.is_open = chat_data.is_open
+        if chat_data.is_open is not None:
+            chat.is_open = chat_data.is_open
+        if chat_data.title is not None:
+            chat.title = chat_data.title
         session.commit()
         session.refresh(chat)
         return ChatSchema.model_validate(chat)
