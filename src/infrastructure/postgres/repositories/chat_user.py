@@ -42,7 +42,7 @@ class ChatUsersRepository:
         user_chats = session.query(ChatUser).filter_by(user_id=user_id).all()
         return [ChatUserSchema.model_validate(user_chat) for user_chat in user_chats]
 
-    def get_chats_user(self, session: Session, chat_uuid: uuid) -> List[ChatUserSchema]:
+    def get_chat_users(self, session: Session, chat_uuid: uuid) -> List[ChatUserSchema]:
         chat_users = session.query(ChatUser).filter_by(chat_uuid=chat_uuid).all()
         return [ChatUserSchema.model_validate(chat_user) for chat_user in chat_users]
 
