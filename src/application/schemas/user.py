@@ -29,8 +29,8 @@ class UserUpdate(BaseModelMixin):
 
 
 class UserLogin(BaseModel):
-    email: Optional[str] = None
-    password: Optional[str] = None
+    email: str
+    password: str
 
 
 class UserToken(BaseModel):

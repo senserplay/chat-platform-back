@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from src.application.schemas.base_model import BaseModelMixin
 
