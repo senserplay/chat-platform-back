@@ -1,6 +1,6 @@
 from typing import List
 
-import uuid
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session as DBSession
 
@@ -32,7 +32,7 @@ async def send_message(
     response_model=List[MessageSchema],
     summary="Получить сообщения чата",
 )
-async def get_chat_messages(chat_uuid: uuid, db_session: DBSession = Depends(get_db_session)) -> List[MessageSchema]:
+async def get_chat_messages(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)) -> List[MessageSchema]:
     return messages_repository.get_chat_messages(db_session, chat_uuid)
 
 

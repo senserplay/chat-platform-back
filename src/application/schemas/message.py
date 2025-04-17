@@ -9,6 +9,9 @@ class MessageCreate(BaseModelMixin):
     chat_uuid: uuid
     text: str
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 # Полная схема для вывода информации о сообщении
 class MessageSchema(BaseModelMixin):
@@ -17,3 +20,6 @@ class MessageSchema(BaseModelMixin):
     chat_uuid: uuid
     text: str
     created_at: datetime
+
+    class Config:
+        arbitrary_types_allowed = True
