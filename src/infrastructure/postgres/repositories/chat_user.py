@@ -3,11 +3,15 @@ from typing import List
 import uuid
 from sqlalchemy.orm import Session
 
+from src.application.schemas.chat import ChatSchema
+from src.application.schemas.user import UserSchema
 from src.infrastructure.postgres.models.chat_user import ChatUser
 from src.application.schemas.chat_user import (
     ChatUserSchema,
     ChatUserUpdate,
 )
+from src.infrastructure.postgres.repositories.chat import chats_repository
+from src.infrastructure.postgres.repositories.user import users_repository
 
 
 class UserAlreadyExistsError(Exception):
@@ -38,13 +42,13 @@ class ChatUsersRepository:
 
         return ChatUserSchema.model_validate(new_chat_user)
 
-    def get_user_chats(self, session: Session, user_id: int) -> List[ChatUserSchema]:
+    def get_user_chats(self, session: Session, user_id: int) -> List[ChatSchema]:
         user_chats = session.query(ChatUser).filter_by(user_id=user_id).all()
-        return [ChatUserSchema.model_validate(user_chat) for user_chat in user_chats]
+        return [chats_repository.get_chat(session, user_chat.chat_uuid) for user_chat in user_chats]
 
-    def get_chat_users(self, session: Session, chat_uuid: uuid) -> List[ChatUserSchema]:
+    def get_chat_users(self, session: Session, chat_uuid: uuid) -> List[UserSchema]:
         chat_users = session.query(ChatUser).filter_by(chat_uuid=chat_uuid).all()
-        return [ChatUserSchema.model_validate(chat_user) for chat_user in chat_users]
+        return [users_repository.get_user(session, chat_user.user_id) for chat_user in chat_users]
 
     def delete_user_from_chat(self, session: Session, chat_user_data: ChatUserUpdate):
         chat_user = session.query(ChatUser).filter_by(user_id=chat_user_data.user_id).filter_by(
