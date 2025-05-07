@@ -19,12 +19,18 @@ class ChatSchema(BaseModelMixin):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 # Схема для обновления чата
 class ChatUpdate(BaseModelMixin):
     uuid: uuid
     title: Optional[str] = None
     is_open: Optional[bool] = None
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 

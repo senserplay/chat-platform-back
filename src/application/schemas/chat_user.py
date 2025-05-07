@@ -7,9 +7,15 @@ class ChatUserUpdate(BaseModelMixin):
     user_id: int
     chat_uuid: uuid
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 # Полная схема для вывода информации о пользователе чата
 class ChatUserSchema(BaseModelMixin):
     id: int
     user_id: int
     chat_uuid: uuid
+
+    class Config:
+        arbitrary_types_allowed = True

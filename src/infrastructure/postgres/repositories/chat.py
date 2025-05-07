@@ -25,6 +25,12 @@ class AccessDeniedError(Exception):
 
 
 class ChatsRepository:
+    def get_chat(self, session: Session, chat_uuid) -> ChatSchema:
+        chat = session.query(Chat).filter_by(uuid=chat_uuid).first()
+        if not chat:
+            raise ChatNotFoundError
+        return ChatSchema.model_validate(chat)
+
     def create_chat(self, session: Session, chat_data: ChatCreate, owner_id: int) -> ChatSchema:
         new_chat = Chat(**chat_data.model_dump(), owner_id=owner_id)
         session.add(new_chat)

@@ -24,8 +24,8 @@ class UserSchema(BaseModelMixin):
 
 # Схема для обновления пользователя
 class UserUpdate(BaseModelMixin):
-    username: str
-    password: str
+    username: Optional[str] = None
+    password: Optional[str] = None
 
 
 class UserLogin(BaseModel):
