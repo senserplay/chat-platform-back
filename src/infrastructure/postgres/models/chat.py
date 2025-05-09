@@ -18,3 +18,4 @@ class Chat(Base, TimestampMixin):
     owner = relationship("User", back_populates="owned_chats")
     users = relationship("ChatUser", back_populates="chat", cascade="all, delete-orphan")
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
+    chat_invitations = relationship("Invitation", back_populates="chat")

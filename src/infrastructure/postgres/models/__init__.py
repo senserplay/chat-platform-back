@@ -1,1 +1,1 @@
-from . import chat, chat_user, message, user
+from . import chat, chat_user, message, user, invitations
