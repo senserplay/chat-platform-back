@@ -9,7 +9,7 @@ from src.application.schemas.chat import (
     ChatCreate,
     ChatUpdate,
 )
-from src.application.schemas.chat_user import ChatUserSchema
+from src.application.schemas.chat_user import ChatUserSchema, ChatUserUpdate
 from src.application.schemas.user import UserSchema
 from src.infrastructure.postgres.client import get_db_session
 from src.infrastructure.postgres.repositories.chat import (
@@ -33,6 +33,7 @@ async def create_chat(
         db_session: DBSession = Depends(get_db_session)
 ) -> ChatSchema:
     new_chat = chats_repository.create_chat(db_session, request, user.id)
+    chat_users_repository.add_user_to_chat(db_session, ChatUserUpdate(user_id=user.id, chat_uuid=new_chat.uuid))
     return new_chat
 
 
