@@ -84,7 +84,7 @@ async def delete_chat(chat_uuid: UUID,
 
 @ROUTER.get(
     "/users/{chat_uuid}",
-    response_model=List[ChatUserSchema],
+    response_model=List[UserSchema],
     summary="Поучить пользователей чата"
 )
 async def get_chat_users(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)):
