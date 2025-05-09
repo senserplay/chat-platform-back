@@ -46,7 +46,7 @@ class ChatUsersRepository:
         user_chats = session.query(ChatUser).filter_by(user_id=user_id).all()
         return [chats_repository.get_chat(session, user_chat.chat_uuid) for user_chat in user_chats]
 
-    def get_chat_users(self, session: Session, chat_uuid: uuid) -> List[UserSchema]:
+    def get_chat_users(self, session: Session, chat_uuid: uuid.UUID) -> List[UserSchema]:
         chat_users = session.query(ChatUser).filter_by(chat_uuid=chat_uuid).all()
         return [users_repository.get_user(session, chat_user.user_id) for chat_user in chat_users]
 

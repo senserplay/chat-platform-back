@@ -24,11 +24,12 @@ ROUTER = APIRouter(prefix="/message")
     summary="Отправить сообщение",
 )
 async def send_message(
-        request: MessageCreate, user: UserSchema = Depends(get_current_user), db_session: DBSession = Depends(get_db_session)
+        request: MessageCreate, user: UserSchema = Depends(get_current_user),
+        db_session: DBSession = Depends(get_db_session)
 ) -> MessageSchema:
     message = messages_repository.create_message(db_session, request, user.id)
     for user in chat_users_repository.get_chat_users(db_session, request.chat_uuid):
-        await notify_user(user.id, message.text)
+        await notify_user(user.id, message.chat_uuid, message)
     return message
 
 

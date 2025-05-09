@@ -25,7 +25,7 @@ class ChatSchema(BaseModelMixin):
 
 # Схема для обновления чата
 class ChatUpdate(BaseModelMixin):
-    uuid: uuid
+    uuid: uuid.UUID
     title: Optional[str] = None
     is_open: Optional[bool] = None
 

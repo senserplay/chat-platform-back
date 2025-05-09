@@ -6,7 +6,7 @@ from src.application.schemas.base_model import BaseModelMixin
 
 # Базовая схема для создания сообщения
 class MessageCreate(BaseModelMixin):
-    chat_uuid: uuid
+    chat_uuid: uuid.UUID
     text: str
 
     class Config:
@@ -17,9 +17,13 @@ class MessageCreate(BaseModelMixin):
 class MessageSchema(BaseModelMixin):
     id: int
     user_id: int
-    chat_uuid: uuid
+    chat_uuid: uuid.UUID
     text: str
     created_at: datetime
 
     class Config:
         arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            uuid.UUID: lambda v: str(v),
+        }
