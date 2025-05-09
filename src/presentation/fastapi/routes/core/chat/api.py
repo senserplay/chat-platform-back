@@ -29,9 +29,10 @@ ROUTER = APIRouter(prefix="/chat")
     summary="Создание нового чата",
 )
 async def create_chat(
-        request: ChatCreate, db_session: DBSession = Depends(get_db_session)
+        request: ChatCreate, user: UserSchema = Depends(get_current_user),
+        db_session: DBSession = Depends(get_db_session)
 ) -> ChatSchema:
-    new_chat = chats_repository.create_chat(db_session, request)
+    new_chat = chats_repository.create_chat(db_session, request, user.id)
     return new_chat
 
 
@@ -79,11 +80,12 @@ async def delete_chat(chat_uuid: UUID,
     except AccessDeniedError as e:
         raise HTTPException(status_code=403, detail=str(e))
 
+
 @ROUTER.get(
     "/users/{chat_uuid}",
-    response_model= List[ChatUserSchema],
-    summary= "Поучить пользователей чата"
+    response_model=List[ChatUserSchema],
+    summary="Поучить пользователей чата"
 )
 async def get_chat_users(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)):
-    users_list = chat_users_repository.get_chat_users(chat_uuid, db_session)
+    users_list = chat_users_repository.get_chat_users(db_session, chat_uuid)
     return users_list

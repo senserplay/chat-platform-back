@@ -32,7 +32,7 @@ class ChatsRepository:
         return ChatSchema.model_validate(chat)
 
     def create_chat(self, session: Session, chat_data: ChatCreate, owner_id: int) -> ChatSchema:
-        new_chat = Chat(**chat_data.model_dump(), owner_id=owner_id)
+        new_chat = Chat(**chat_data.model_dump(), owner_id=owner_id, is_open=True)
         session.add(new_chat)
         session.commit()
         session.refresh(new_chat)
