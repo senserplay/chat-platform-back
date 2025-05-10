@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,11 +5,11 @@ from sqlmodel import Session as DBSession
 
 from src.application.schemas.chat import (
     ChatSchema,
-    ChatCreate,
-    ChatUpdate,
+
 )
-from src.application.schemas.chat_user import ChatUserSchema, ChatUserUpdate
+from src.application.schemas.chat_user import ChatUserUpdate
 from src.application.schemas.user import UserSchema
+from src.core.config import env_settings
 from src.infrastructure.postgres.client import get_db_session
 from src.infrastructure.postgres.repositories.invitations import (
     invitations_repository,
@@ -21,6 +20,8 @@ from src.infrastructure.postgres.repositories.invitations import (
 from src.infrastructure.postgres.repositories.chat import chats_repository
 from src.infrastructure.postgres.repositories.chat_user import chat_users_repository
 from src.presentation.fastapi.middlewares import get_current_user
+
+from src.services.email import EmailSender
 
 ROUTER = APIRouter(prefix="/invite")
 
@@ -41,7 +42,13 @@ async def create_invitation(
         )
 
     new_invitation = invitations_repository.create_invitation(db_session, request)
-    #TODO Отправить приглашение на email
+    subject = "Здравствуйте, на связи ChatPlatform!"
+    html_content = f"""
+                <h1>Вас пригласили в чат!</h1>
+                <p>Для присоединения к чату, перейдите по ссылке.</p>
+                <a href="{env_settings.BASE_URL}/invite/accept/{new_invitation.token} ">Присоединиться к чату</a>
+            """
+    EmailSender.send_email(request.email, subject=subject, html_content=html_content)
     return new_invitation
 
 
@@ -50,7 +57,8 @@ async def create_invitation(
     response_model=InvitationSchema,
     summary="Принять приглашение",
 )
-async def accept_invitation(token: UUID, user: UserSchema = Depends(get_current_user), db_session: DBSession = Depends(get_db_session)) -> ChatSchema:
+async def accept_invitation(token: UUID, user: UserSchema = Depends(get_current_user),
+                            db_session: DBSession = Depends(get_db_session)) -> ChatSchema:
     try:
         invitation = invitations_repository.get_invitation(db_session, token)
     except InvitationNotFoundError as e:

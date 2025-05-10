@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_DAYS: int
     RESEND_API_KEY: str
     MAILER_SENDER_FROM_ADDRESS: str
+    BASE_URL: str
 
     class Config:
         env_file = ".env"
