@@ -120,7 +120,7 @@ async def get_user_chats(
         db_session: DBSession = Depends(get_db_session),
 ):
     user_chats = chat_users_repository.get_user_chats(db_session, user.id)
-    return [ChatSchema.model_validate(chats_repository.get_chat(user_chat.chat_uuid)) for user_chat in user_chats]
+    return user_chats
 
 
 @ROUTER.get(
@@ -132,5 +132,5 @@ async def get_user_owned_chats(
         user: UserSchema = Depends(get_current_user),
         db_session: DBSession = Depends(get_db_session),
 ):
-    user_chats = chats_repository.get_user_owned_chats(db_session, user.id)
-    return [ChatSchema.model_validate(user_chat) for user_chat in user_chats]
+    user_owned_chats = chats_repository.get_user_owned_chats(db_session, user.id)
+    return user_owned_chats
