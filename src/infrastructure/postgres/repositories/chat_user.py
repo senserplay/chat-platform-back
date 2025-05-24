@@ -10,8 +10,9 @@ from src.application.schemas.chat_user import (
     ChatUserSchema,
     ChatUserUpdate,
 )
-from src.infrastructure.postgres.repositories.chat import chats_repository
-from src.infrastructure.postgres.repositories.user import users_repository
+
+from src.infrastructure.redis.storage.chat_storage import chats_storage
+from src.infrastructure.redis.storage.user_storage import users_storage
 
 
 class UserAlreadyExistsError(Exception):
@@ -44,11 +45,11 @@ class ChatUsersRepository:
 
     def get_user_chats(self, session: Session, user_id: int) -> List[ChatSchema]:
         user_chats = session.query(ChatUser).filter_by(user_id=user_id).all()
-        return [chats_repository.get_chat(session, user_chat.chat_uuid) for user_chat in user_chats]
+        return [chats_storage.get_chat(user_chat.chat_uuid) for user_chat in user_chats]
 
     def get_chat_users(self, session: Session, chat_uuid: uuid.UUID) -> List[UserSchema]:
         chat_users = session.query(ChatUser).filter_by(chat_uuid=chat_uuid).all()
-        return [users_repository.get_user(session, chat_user.user_id) for chat_user in chat_users]
+        return [users_storage.get_user(chat_user.user_id) for chat_user in chat_users]
 
     def delete_user_from_chat(self, session: Session, chat_user_data: ChatUserUpdate):
         chat_user = session.query(ChatUser).filter_by(user_id=chat_user_data.user_id).filter_by(
