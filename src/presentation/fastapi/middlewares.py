@@ -10,6 +10,7 @@ from src.infrastructure.postgres.repositories.user import (
 )
 from src.core.auth_service import auth_service
 from src.infrastructure.postgres.client import get_db_session
+from src.infrastructure.redis.storage.user_storage import users_storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
@@ -27,7 +28,7 @@ async def get_current_user(
     try:
         user_id = auth_service.verify_token(token)
 
-        user = users_repository.get_user(db_session, user_id)
+        user = users_storage.get_user(user_id)
         if not user:
             raise UserNotFoundError(f"User {user_id} not found")
 

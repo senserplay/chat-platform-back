@@ -18,6 +18,7 @@ from src.infrastructure.postgres.repositories.chat import (
     AccessDeniedError,
 )
 from src.infrastructure.postgres.repositories.chat_user import chat_users_repository
+from src.infrastructure.redis.storage.chat_storage import chats_storage
 from src.presentation.fastapi.middlewares import get_current_user
 
 ROUTER = APIRouter(prefix="/chat")
@@ -32,7 +33,7 @@ async def create_chat(
         request: ChatCreate, user: UserSchema = Depends(get_current_user),
         db_session: DBSession = Depends(get_db_session)
 ) -> ChatSchema:
-    new_chat = chats_repository.create_chat(db_session, request, user.id)
+    new_chat = chats_storage.create_chat(db_session, request, user.id)
     chat_users_repository.add_user_to_chat(db_session, ChatUserUpdate(user_id=user.id, chat_uuid=new_chat.uuid))
     return new_chat
 
@@ -42,9 +43,9 @@ async def create_chat(
     response_model=ChatSchema,
     summary="Получить чат",
 )
-async def get_chat(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)) -> ChatSchema:
+async def get_chat(chat_uuid: UUID) -> ChatSchema:
     try:
-        return chats_repository.get_chat(db_session, chat_uuid)
+        return chats_storage.get_chat(chat_uuid)
     except ChatNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -59,7 +60,7 @@ async def update_chat(request: ChatUpdate,
                       db_session: DBSession = Depends(get_db_session)
                       ) -> ChatSchema:
     try:
-        return chats_repository.update_chat(db_session, request, user.id)
+        return chats_storage.update_chat(db_session, request, user.id)
     except ChatNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except AccessDeniedError as e:
@@ -74,7 +75,7 @@ async def delete_chat(chat_uuid: UUID,
                       user: UserSchema = Depends(get_current_user),
                       db_session: DBSession = Depends(get_db_session)):
     try:
-        chats_repository.delete_chat(db_session, chat_uuid, user.id)
+        chats_storage.delete_chat(db_session, chat_uuid, user.id)
         return {"status": "ok"}
     except ChatNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
