@@ -1,23 +1,19 @@
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
-from sqlmodel import Session
 
 from src.application.schemas.user import UserSchema
 from src.infrastructure.postgres.repositories.user import (
-    users_repository,
     UserNotFoundError,
 )
 from src.core.auth_service import auth_service
-from src.infrastructure.postgres.client import get_db_session
 from src.infrastructure.redis.storage.user_storage import users_storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 async def get_current_user(
-    token: str = Security(oauth2_scheme),
-    db_session: Session = Depends(get_db_session),
+    token: str = Security(oauth2_scheme)
 ) -> UserSchema:
     if not token:
         raise HTTPException(
@@ -37,7 +33,8 @@ async def get_current_user(
     except (HTTPException, UserNotFoundError) as e:
         logger.error(f"Authentication error: {str(e)}")
         raise
-    except Exception:
+    except Exception as e:
+        logger.info(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal authentication error",

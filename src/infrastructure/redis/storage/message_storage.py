@@ -5,14 +5,8 @@ from sqlalchemy.orm import Session
 
 from src.application.schemas.message import MessageSchema
 from src.infrastructure.postgres.client import SessionLocal
-from src.application.schemas.user import (
-    UserCreate,
-    UserUpdate,
-    UserSchema,
-)
-from src.infrastructure.postgres.repositories.chat import chats_repository
+
 from src.infrastructure.postgres.repositories.message import messages_repository
-from src.infrastructure.postgres.repositories.user import users_repository
 from src.infrastructure.redis.storage.redis_storage import RedisStorage
 
 
@@ -24,8 +18,8 @@ class MessagesStorage(RedisStorage):
         message_data = message.model_dump(mode='json')
         self.list_push(str(message.chat_uuid), message_data, ttl)
 
-    def create_message(self, session: Session, message_data: MessageSchema) -> MessageSchema:
-        new_message = messages_repository.create_message(session, message_data)
+    def create_message(self, session: Session, message_data: MessageSchema, user_id: int) -> MessageSchema:
+        new_message = messages_repository.create_message(session, message_data, user_id)
         self.add_message(new_message)
         return new_message
 

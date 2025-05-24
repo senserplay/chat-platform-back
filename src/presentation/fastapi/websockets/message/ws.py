@@ -1,10 +1,11 @@
 import asyncio
-from typing import Dict
+from typing import Dict, Optional
 from uuid import UUID
 
 from fastapi import APIRouter
+from loguru import logger
 
-from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from src.application.schemas.message import MessageSchema
 
@@ -15,9 +16,35 @@ ROUTER = APIRouter(prefix="/message")
 
 async def notify_user(user_id: int, chat_uuid: UUID, message: MessageSchema):
     """Отправить сообщение пользователю, если он подключен."""
-    if (user_id in active_connections) and (chat_uuid in active_connections[user_id]):
-        websocket = active_connections[user_id][chat_uuid]
+    # Получаем соединение пользователя с чатом (если оно существует)
+    user_connections = active_connections.get(user_id)
+    if not user_connections:
+        logger.debug(f"Пользователь {user_id} не найден в active_connections")
+        return
+
+    websocket: Optional[WebSocket] = user_connections.get(chat_uuid)
+    if not websocket:
+        logger.debug(f"Пользователь {user_id} не подключен к чату {chat_uuid}")
+        return
+
+    # Проверяем состояние соединения
+    if websocket.client_state != WebSocketState.CONNECTED:
+        logger.warning(f"Соединение с пользователем {user_id} в чате {chat_uuid} не активно")
+        # Удаляем неактивное соединение
+        del active_connections[user_id][chat_uuid]
+        if not active_connections[user_id]:  # Удаляем пользователя, если нет соединений
+            del active_connections[user_id]
+        return
+
+    try:
+        # Отправляем сообщение
         await websocket.send_json(message.model_dump_json(by_alias=True))
+    except Exception as e:
+        logger.error(f"Ошибка отправки сообщения пользователю {user_id} в чате {chat_uuid}: {e}", exc_info=True)
+        # Удаляем соединение при ошибке
+        del active_connections[user_id][chat_uuid]
+        if not active_connections[user_id]:
+            del active_connections[user_id]
 
 
 @ROUTER.websocket("/ws/{user_id}/{chat_uuid}")
