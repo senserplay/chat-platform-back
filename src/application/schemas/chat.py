@@ -21,6 +21,10 @@ class ChatSchema(BaseModelMixin):
 
     class Config:
         arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            uuid.UUID: lambda v: str(v),
+        }
 
 
 # Схема для обновления чата

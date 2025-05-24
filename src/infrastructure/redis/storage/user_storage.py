@@ -15,14 +15,7 @@ class UsersStorage(RedisStorage):
         super().__init__(prefix="users")
 
     def add_user(self, user: UserSchema, ttl=3600):
-        user_data = {
-            "id": user.id,
-            "username": user.username,
-            "password": user.password,
-            "email": user.email,
-            "created_at": str(user.created_at),
-            "updated_at": str(user.updated_at) if user.updated_at else user.updated_at
-        }
+        user_data = user.model_dump(mode='json')
         self.hash_set(str(user.id), user_data, ttl)
 
     def create_user(self, session: Session, user_data: UserCreate) -> UserSchema:
@@ -36,14 +29,7 @@ class UsersStorage(RedisStorage):
                 user = users_repository.get_user(session, user_id)
                 self.add_user(user)
         user_data = self.hash_get(str(user_id))
-        user = UserSchema(
-            id=int(user_data['id']),
-            username=user_data['username'],
-            password=user_data['password'],
-            email=user_data['email'],
-            created_at=user_data['created_at'],
-            updated_at=user_data['updated_at']
-        )
+        user = UserSchema(**user_data)
         return user
 
     def delete_user(self, session: Session, user_id: int):

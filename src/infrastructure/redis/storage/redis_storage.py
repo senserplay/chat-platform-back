@@ -1,6 +1,8 @@
 import json
 from typing import List, Union
 
+from pydantic import BaseModel
+
 from src.infrastructure.redis.client import redis_client
 
 
@@ -116,3 +118,31 @@ class RedisStorage:
             # Если хеш пуст, удаляем сам ключ
             redis_client.delete(redis_key)
 
+    def list_get(self, key: str, start=0, end=-1):
+        return [
+            self.extract_value(i)
+            for i in redis_client.lrange(self.format_key(key), start, end)
+        ]
+
+    def list_push(
+            self, key: str, value: Union[dict, float, BaseModel, str], ttl=3600
+    ):
+        """
+        Добавляет значение в начало списка в Redis.
+        :param key: Ключ списка.
+        :param value: Значение для добавления.
+        :param ttl: Время жизни ключа (в секундах).
+        """
+        formatted_value = (
+            value if isinstance(value, str) else self.format_value(value)
+        )
+        redis_client.lpush(self.format_key(key), formatted_value)
+        redis_client.expire(self.format_key(key), ttl)
+
+    def extract_value(self, value):
+        if value is None:
+            return None
+        return json.loads(value)
+
+    def format_value(self, value: Union[dict, BaseModel, float]):
+        return json.dumps(value) if isinstance(value, dict) else str(value)

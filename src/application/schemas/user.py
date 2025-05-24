@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
@@ -20,6 +21,13 @@ class UserSchema(BaseModelMixin):
     email: EmailStr
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            uuid.UUID: lambda v: str(v),
+        }
 
 
 # Схема для обновления пользователя
