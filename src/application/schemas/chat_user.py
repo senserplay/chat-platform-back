@@ -5,7 +5,7 @@ from src.application.schemas.base_model import BaseModelMixin
 # Базовая схема для добавления пользователя в чат
 class ChatUserUpdate(BaseModelMixin):
     user_id: int
-    chat_uuid: uuid
+    chat_uuid: uuid.UUID
 
     class Config:
         arbitrary_types_allowed = True
@@ -15,7 +15,7 @@ class ChatUserUpdate(BaseModelMixin):
 class ChatUserSchema(BaseModelMixin):
     id: int
     user_id: int
-    chat_uuid: uuid
+    chat_uuid: uuid.UUID
 
     class Config:
         arbitrary_types_allowed = True

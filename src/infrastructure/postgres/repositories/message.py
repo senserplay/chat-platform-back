@@ -27,6 +27,12 @@ class AccessDeniedError(Exception):
 
 
 class MessagesRepository:
+    def get_message(self, session: Session, message_id: int) -> MessageSchema:
+        message = session.query(Message).filter_by(id=message_id).first()
+        if not message:
+            raise MessageNotFoundError
+        return MessageSchema.model_validate(message)
+
     def create_message(self, session: Session, message_data: MessageCreate, user_id: int) -> MessageSchema:
         new_message = Message(**message_data.model_dump(), user_id=user_id)
         session.add(new_message)
@@ -35,7 +41,7 @@ class MessagesRepository:
 
         return MessageSchema.model_validate(new_message)
 
-    def get_chat_messages(self, session: Session, chat_uuid: uuid) -> List[MessageSchema]:
+    def get_chat_messages(self, session: Session, chat_uuid: uuid.UUID) -> List[MessageSchema]:
         chat_messages = session.query(Message).filter_by(chat_uuid=chat_uuid).all()
         return [MessageSchema.model_validate(chat_message) for chat_message in chat_messages]
 

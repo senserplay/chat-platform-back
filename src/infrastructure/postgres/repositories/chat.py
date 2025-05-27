@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -43,7 +44,7 @@ class ChatsRepository:
         user_owned_chats = session.query(Chat).filter_by(owner_id=user_id).all()
         return [ChatSchema.model_validate(chat) for chat in user_owned_chats]
 
-    def delete_chat(self, session: Session, chat_uuid: int, user_id: int):
+    def delete_chat(self, session: Session, chat_uuid: UUID, user_id: int):
         chat = session.query(Chat).filter_by(uuid=chat_uuid).first()
         if not chat:
             raise ChatNotFoundError

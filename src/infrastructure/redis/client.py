@@ -7,6 +7,5 @@ redis_client = redis.Redis(
     port=env_settings.REDIS_PORT,
     db=env_settings.REDIS_DB_INDEX,
     username=env_settings.REDIS_USERNAME,
-    password=env_settings.REDIS_PASSWORD,
-    decode_responses=True
+    password=env_settings.REDIS_PASSWORD
 )

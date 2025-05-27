@@ -8,9 +8,9 @@ from src.application.schemas.user import UserSchema
 from src.infrastructure.postgres.client import get_db_session
 from src.infrastructure.postgres.repositories.chat_user import chat_users_repository
 from src.infrastructure.postgres.repositories.message import (
-    messages_repository,
     MessageNotFoundError, AccessDeniedError,
 )
+from src.infrastructure.redis.storage.message_storage import messages_storage
 from src.presentation.fastapi.middlewares import get_current_user
 from src.application.schemas.message import MessageSchema, MessageCreate
 from src.presentation.fastapi.websockets.message.ws import notify_user
@@ -27,7 +27,7 @@ async def send_message(
         request: MessageCreate, user: UserSchema = Depends(get_current_user),
         db_session: DBSession = Depends(get_db_session)
 ) -> MessageSchema:
-    message = messages_repository.create_message(db_session, request, user.id)
+    message = messages_storage.create_message(db_session, request, user.id)
     for user in chat_users_repository.get_chat_users(db_session, request.chat_uuid):
         await notify_user(user.id, message.chat_uuid, message)
     return message
@@ -38,8 +38,8 @@ async def send_message(
     response_model=List[MessageSchema],
     summary="Получить сообщения чата",
 )
-async def get_chat_messages(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)) -> List[MessageSchema]:
-    return messages_repository.get_chat_messages(db_session, chat_uuid)
+async def get_chat_messages(chat_uuid: UUID) -> List[MessageSchema]:
+    return messages_storage.get_chat_messages(chat_uuid)
 
 
 @ROUTER.delete(
@@ -52,7 +52,7 @@ async def delete_message(
         db_session: DBSession = Depends(get_db_session),
 ):
     try:
-        messages_repository.delete_message(db_session, message_id, user.id)
+        messages_storage.delete_message(db_session, message_id, user.id)
         return {"status": "ok"}
     except MessageNotFoundError as e:
         raise HTTPException(

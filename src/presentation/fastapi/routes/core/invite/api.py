@@ -46,7 +46,7 @@ async def create_invitation(
     html_content = f"""
                 <h1>Вас пригласили в чат!</h1>
                 <p>Для присоединения к чату, перейдите по ссылке.</p>
-                <a href="{env_settings.BASE_URL}/invite/accept/{new_invitation.token} ">Присоединиться к чату</a>
+                <a href="{env_settings.BASE_URL}/invite/{new_invitation.token} ">Присоединиться к чату</a>
             """
     EmailSender.send_email(request.email, subject=subject, html_content=html_content)
     return new_invitation
