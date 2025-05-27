@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
     )
     scheduler.start()
     yield
+    scheduler.shutdown()
     logger.info("🔌 Сервер останавливается.")
 
 

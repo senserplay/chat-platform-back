@@ -54,16 +54,20 @@ class MessagesRepository:
         session.delete(message)
         session.commit()
 
-    def get_daily_message(self, session: Session, date: date) -> List[MessageSchema]:
-
+    def get_daily_message(self, session: Session, start_utc, end_utc) -> List[MessageSchema]:
+        """
+        Возвращает все сообщения за указанный временной диапазон (в UTC).
+        Предполагается, что start_utc и end_utc — datetime объекты с tzinfo=UTC.
+        """
         messages = (
             session.query(Message)
             .filter(
-                cast(Message.created_at, Date) == date
+                Message.created_at.between(start_utc, end_utc)
             )
             .all()
         )
         return [MessageSchema.model_validate(message) for message in messages]
+
 
 
 messages_repository = MessagesRepository()
