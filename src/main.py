@@ -8,11 +8,19 @@ from src.presentation.fastapi.setup_routes import setup
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from src.services.cron.message_statistic import message_data
+
+scheduler = BackgroundScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_uvicorn_loggers()
     logger.info("🔌 Сервер запущен")
+    scheduler.add_job(
+        message_data, 'cron', hour=0, minute=0
+    )
+    scheduler.start()
     yield
     logger.info("🔌 Сервер останавливается.")
 
