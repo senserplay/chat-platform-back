@@ -22,9 +22,9 @@ class RedisStorage:
         :param expiration: Время жизни ключа в секундах (опционально)
         """
         if expiration:
-            redis_client.set(self.format_key(key), value, ex=expiration)
+            redis_client.set(self.format_key(key), self.format_value(value), ex=expiration)
         else:
-            redis_client.set(self.format_key(key), value)
+            redis_client.set(self.format_key(key), self.format_value(value))
 
     def get_value(self, key):
         """
@@ -32,7 +32,7 @@ class RedisStorage:
         :param key: Ключ
         :return: Значение или None, если ключ не существует
         """
-        return redis_client.get(self.format_key(key))
+        return self.extract_value(redis_client.get(self.format_key(key)))
 
     def delete_key(self, key):
         """
@@ -146,3 +146,7 @@ class RedisStorage:
 
     def format_value(self, value: Union[dict, BaseModel, float]):
         return json.dumps(value) if isinstance(value, dict) else str(value)
+
+    def keys(self, wildcard: str):
+        raw_keys = redis_client.keys(self.format_key(wildcard))
+        return [key.decode().replace(self.prefix, "") for key in raw_keys]

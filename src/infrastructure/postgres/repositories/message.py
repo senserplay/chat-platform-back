@@ -1,8 +1,10 @@
 from typing import List
 
 import uuid
-from sqlalchemy.orm import Session
 
+from sqlalchemy import Date, cast
+from sqlalchemy.orm import Session
+from datetime import date
 from src.infrastructure.postgres.models.message import Message
 from src.application.schemas.message import (
     MessageSchema,
@@ -11,10 +13,10 @@ from src.application.schemas.message import (
 
 
 class MessageNotFoundError(Exception):
-    """Исключение, вызываемое, если сообщение не найден"""
+    """Исключение, вызываемое, если сообщение не найдено"""
 
     def __str__(self):
-        return "Сообщение не найден"
+        return "Сообщение не найдено"
 
 
 class AccessDeniedError(Exception):
@@ -51,6 +53,21 @@ class MessagesRepository:
             raise AccessDeniedError
         session.delete(message)
         session.commit()
+
+    def get_daily_message(self, session: Session, start_utc, end_utc) -> List[MessageSchema]:
+        """
+        Возвращает все сообщения за указанный временной диапазон (в UTC).
+        Предполагается, что start_utc и end_utc — datetime объекты с tzinfo=UTC.
+        """
+        messages = (
+            session.query(Message)
+            .filter(
+                Message.created_at.between(start_utc, end_utc)
+            )
+            .all()
+        )
+        return [MessageSchema.model_validate(message) for message in messages]
+
 
 
 messages_repository = MessagesRepository()
