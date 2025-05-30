@@ -7,7 +7,8 @@ from loguru import logger
 
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from src.application.schemas.message import MessageSchema, MessageWithUsernameSchema
+from src.application.schemas.message import MessageWithUsernameSchema
+from src.core.auth_service import auth_service
 
 active_connections: Dict[int, Dict[UUID, WebSocket]] = {}
 
@@ -47,14 +48,35 @@ async def notify_user(user_id: int, chat_uuid: UUID, message: MessageWithUsernam
             del active_connections[user_id]
 
 
-@ROUTER.websocket("/ws/{user_id}/{chat_uuid}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int, chat_uuid: UUID):
+@ROUTER.websocket("/ws/{chat_uuid}")
+async def websocket_endpoint(websocket: WebSocket, chat_uuid: UUID, token: str):
+    """
+    WebSocket маршрут с проверкой Bearer токена в заголовках.
+    """
+    try:
+        user_id: Optional[int] = auth_service.verify_token(token)
+        if not user_id:
+            await websocket.close(code=4001)
+            return
+    except Exception as e:
+        logger.warning(f"Неверный токен: {e}")
+        await websocket.close(code=4002)
+        return
+
     await websocket.accept()
+
     if user_id not in active_connections:
         active_connections[user_id] = {}
     active_connections[user_id][chat_uuid] = websocket
+
+    logger.info(f"Пользователь {user_id} подключился к чату {chat_uuid}")
+
     try:
         while True:
             await asyncio.sleep(1)
     except WebSocketDisconnect:
-        active_connections[user_id].pop(chat_uuid, None)
+        if user_id in active_connections and chat_uuid in active_connections[user_id]:
+            del active_connections[user_id][chat_uuid]
+            if not active_connections[user_id]:
+                del active_connections[user_id]
+        logger.info(f"Пользователь {user_id} отключился от чата {chat_uuid}")
