@@ -7,14 +7,14 @@ from loguru import logger
 
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from src.application.schemas.message import MessageSchema
+from src.application.schemas.message import MessageSchema, MessageWithUsernameSchema
 
 active_connections: Dict[int, Dict[UUID, WebSocket]] = {}
 
 ROUTER = APIRouter(prefix="/message")
 
 
-async def notify_user(user_id: int, chat_uuid: UUID, message: MessageSchema):
+async def notify_user(user_id: int, chat_uuid: UUID, message: MessageWithUsernameSchema):
     """Отправить сообщение пользователю, если он подключен."""
     # Получаем соединение пользователя с чатом (если оно существует)
     user_connections = active_connections.get(user_id)
