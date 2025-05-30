@@ -27,3 +27,8 @@ class MessageSchema(BaseModelMixin):
             datetime: lambda v: v.isoformat(),
             uuid.UUID: lambda v: str(v),
         }
+
+
+class MessageWithUsernameSchema(BaseModelMixin):
+    username: str
+    message: MessageSchema
