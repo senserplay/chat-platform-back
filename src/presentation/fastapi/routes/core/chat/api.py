@@ -13,7 +13,6 @@ from src.application.schemas.chat_user import ChatUserSchema, ChatUserUpdate
 from src.application.schemas.user import UserSchema
 from src.infrastructure.postgres.client import get_db_session
 from src.infrastructure.postgres.repositories.chat import (
-    chats_repository,
     ChatNotFoundError,
     AccessDeniedError,
 )
@@ -91,3 +90,20 @@ async def delete_chat(chat_uuid: UUID,
 async def get_chat_users(chat_uuid: UUID, db_session: DBSession = Depends(get_db_session)):
     users_list = chat_users_repository.get_chat_users(db_session, chat_uuid)
     return users_list
+
+
+@ROUTER.delete(
+    "user/{chat_uuid}",
+    summary="Удалить пользователя из чата"
+)
+async def delete_user_from_chat(chat_uuid: UUID, user_id: int,
+                                user: UserSchema = Depends(get_current_user),
+                                db_session: DBSession = Depends(get_db_session)):
+    chat = chats_storage.get_chat(chat_uuid)
+    if chat.owner_id != user.id:
+        raise HTTPException(
+            status_code=403, detail="Вы не являетесь создателем чата"
+        )
+    chat_user_delete = ChatUserUpdate(user_id=user_id, chat_uuid=chat_uuid)
+    chat_users_repository.delete_user_from_chat(db_session, chat_user_delete)
+    return {"status": "ok"}
